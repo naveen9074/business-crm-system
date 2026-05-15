@@ -1,0 +1,14 @@
+/**
+ * Page header component with title, breadcrumb-style subtitle, and optional action.
+ */
+export default function PageHeader({ title, subtitle, action }) {
+  return (
+    <div className="flex items-center justify-between mb-6 animate-fade-in-up">
+      <div>
+        <h1 className="text-2xl font-bold text-white">{title}</h1>
+        {subtitle && <p className="text-sm text-slate-400 mt-1">{subtitle}</p>}
+      </div>
+      {action && <div>{action}</div>}
+    </div>
+  )
+}

@@ -1,0 +1,170 @@
+# AI-CRM Platform — Project Walkthrough
+
+## What Was Built
+
+A **modular, AI-powered, multi-tenant CRM platform** from scratch.
+
+---
+
+## Architecture Overview
+
+```mermaid
+graph TD
+    A[React Frontend :5174] -->|API proxy /api| B[FastAPI Backend :8080]
+    B --> C[(PostgreSQL :5432)]
+    B --> D[ML Models - joblib]
+    B --> E[APScheduler]
+    E --> D
+    E --> C
+```
+
+---
+
+## Backend — FastAPI
+
+### 13 API Routers (all registered under `/api/v1`)
+
+| Router | Route prefix | Description |
+|---|---|---|
+| [auth.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/auth.py) | `/auth` | JWT login, register, `/me` |
+| [tenants.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/tenants.py) | `/tenants` | Super admin tenant CRUD |
+| [customers.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/customers.py) | `/customers` | Tenant-isolated customer CRUD |
+| [leads.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/leads.py) | `/leads` | Lead CRUD + AI score field |
+| [pipeline.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/models/pipeline.py) | `/pipeline` | Stages + Deals (Kanban) |
+| [activities.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/activities.py) | `/activities` | Activity log + Communication logs |
+| [alerts.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/alerts.py) | `/alerts` | Alerts CRUD + rule CRUD |
+| [analytics.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/analytics.py) | `/analytics` | Dashboard KPIs, revenue trend, funnel |
+| [ml.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/ml.py) | `/ml` | All AI/ML endpoints |
+| [config.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/config.py) | `/config` | Module toggles, terminology, custom fields |
+| [plugins.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/plugins.py) | `/plugins` | Plugin enable/disable per tenant |
+| [tags.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/tags.py) | `/tags` | Tag CRUD + tenant user management |
+| [scraper.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/scraper.py) | `/scraper` | Market news + competitor price scrapers |
+
+### 5 ML Modules
+
+| Module | Algorithm | Output |
+|---|---|---|
+| [lead_scoring.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/ml/lead_scoring.py) | Random Forest | Score 0-100, priority label |
+| [sales_forecast.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/ml/sales_forecast.py) | Holt-Winters (Exponential Smoothing) | 3-month revenue forecast |
+| [segmentation.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/ml/segmentation.py) | KMeans (RFM features) | Segment label per customer |
+| [churn_prediction.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/ml/churn_prediction.py) | Logistic Regression | Churn probability + risk level |
+| [recommendation.py](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/ml/recommendation.py) | Item-item Collaborative Filtering | Product recommendations |
+
+### Alert System
+- **Rule Engine** — evaluates JSON-defined rules against customer data
+- **APScheduler** — runs 3 background jobs: rule alerts (hourly), inactive customers (daily), ML churn alerts (every 6h)
+
+---
+
+## Frontend — React + Vite
+
+### 9 Pages
+
+| Page | Route | Description |
+|---|---|---|
+| Login | `/login` | Auth form with demo credentials panel |
+| Dashboard | `/` | KPI cards + Recharts (area, pie, bar) |
+| Customers | `/customers` | Table + search + Add modal |
+| Leads | `/leads` | Table + AI score A/B/C badges + batch scoring |
+| Pipeline | `/pipeline` | Kanban columns per stage, deal cards |
+| Activities | `/activities` | Timeline feed with type icons |
+| AI Insights | `/ai-insights` | Forecast chart + RFM pie + churn risk table |
+| Alerts | `/alerts` | Alert list (ack/resolve) + rule builder |
+| Config | `/config` | Module toggles, terminology view, custom fields |
+| Super Admin | `/admin` | Tenant card grid (super_admin only) |
+
+### Tech Stack
+- React 18 + Vite + React Router v6
+- Zustand (auth state, persisted to localStorage)
+- Axios with auto-auth interceptor + 401 auto-logout
+- Recharts (AreaChart, BarChart, PieChart)
+- Lucide React icons + react-hot-toast
+
+---
+
+## Verification Results
+
+```
+✅ Backend health:  GET /health → {"status":"ok","app":"AI-CRM Platform","version":"1.0.0"}
+✅ Auth guard:      GET /api/v1/auth/me (bad token) → {"detail":"Not authenticated"}
+✅ Backend startup: Application startup complete (uvicorn on :8080)
+✅ Frontend:        Vite dev server ready on :5174
+✅ npm install:     139 packages installed
+✅ pip install:     All dependencies installed (FastAPI, scikit-learn, pandas, etc.)
+```
+
+---
+
+## How to Run
+
+### Prerequisites
+- Python 3.12+
+- Node.js 18+
+- PostgreSQL (for full functionality)
+
+### 1. Start PostgreSQL (Docker)
+```bash
+docker run -d --name crm-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=crm_db -p 5432:5432 postgres:16-alpine
+```
+
+### 2. Start Backend
+```bash
+cd backend
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+```
+
+### 3. Start Frontend
+```bash
+cd frontend
+npm run dev
+```
+
+### 4. Access
+| URL | Description |
+|---|---|
+| http://localhost:5174 | React Frontend (Login → admin@demo.com / admin123) |
+| http://localhost:8080/docs | FastAPI Swagger API Docs |
+| http://localhost:8080/health | Health check endpoint |
+
+---
+
+## Multi-Tenancy
+
+- Tenant isolation via `X-Tenant-ID` header on every API request
+- Each tenant has isolated data, custom business type, and module toggles
+- Business types: `insurance`, `retail`, `service`, `manufacturing`, [custom](file:///c:/Users/naveen/Desktop/anittaproject/backend/app/routers/customers.py#86-94)
+- Each type has auto-mapped CRM terminology (e.g. "Lead" → "Policyholder" for insurance)
+
+---
+
+## File Structure
+
+```
+anittaproject/
+├── backend/
+│   ├── app/
+│   │   ├── main.py              ← FastAPI app factory
+│   │   ├── config.py            ← Pydantic settings
+│   │   ├── database.py          ← SQLAlchemy engine + session
+│   │   ├── dependencies.py      ← Auth & tenant FastAPI deps
+│   │   ├── models/              ← 11 ORM models
+│   │   ├── routers/             ← 13 API routers
+│   │   ├── services/            ← auth_service.py
+│   │   ├── ml/                  ← 5 ML modules
+│   │   ├── alerts/              ← rule_engine + scheduler
+│   │   ├── plugins/             ← plugin_base.py
+│   │   └── scraper/             ← scrapers.py
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx              ← Router + guards
+│   │   ├── index.css            ← Full dark-theme design system
+│   │   ├── api/index.js         ← Axios client (all modules)
+│   │   ├── store/authStore.js   ← Zustand auth store
+│   │   ├── components/Layout/   ← Sidebar + AppLayout + Topbar
+│   │   └── pages/               ← 9 fully-featured pages
+│   ├── package.json
+│   └── vite.config.js
+└── docker-compose.yml
+```
