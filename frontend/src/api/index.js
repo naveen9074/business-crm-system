@@ -1,6 +1,8 @@
 import axios from 'axios'
-import { useAuthStore, DEV_BYPASS } from '../store/authStore'
 import { findMock } from './mockData'
+
+// Dev bypass flag — set to true to skip real auth and serve mock data
+const DEV_BYPASS = true
 
 const api = axios.create({
     baseURL: '/api/v1',
@@ -9,9 +11,8 @@ const api = axios.create({
 // Attach auth token + tenant header to every request
 // In DEV_BYPASS mode we skip the fake token (not a real JWT → would cause 401 loop)
 api.interceptors.request.use((config) => {
-    const { token, tenantId } = useAuthStore.getState()
+    const token = localStorage.getItem('crms_token')
     if (token && !DEV_BYPASS) config.headers.Authorization = `Bearer ${token}`
-    if (tenantId) config.headers['X-Tenant-ID'] = String(tenantId)
     return config
 })
 
@@ -22,7 +23,8 @@ api.interceptors.response.use(
         // Auto-logout on 401 — but ONLY when not in dev bypass mode
         // (in bypass mode, 401s just fall through to the mock data below)
         if (err.response?.status === 401 && !DEV_BYPASS) {
-            useAuthStore.getState().logout()
+            localStorage.removeItem('crms_token')
+            localStorage.removeItem('crms_user')
             window.location.href = '/login'
             return Promise.reject(err)
         }

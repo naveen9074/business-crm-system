@@ -1,119 +1,341 @@
-/**
- * Sidebar navigation — adapts links based on user role (admin/manager/employee).
- */
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from '../store/AuthContext'
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  Users,
+  ShoppingCart,
+  Package,
+  TrendingUp,
+  Truck,
+  DollarSign,
+  FileText,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Settings,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
 
-const adminLinks = [
-  { to: '/admin', label: 'Dashboard', icon: '📊' },
-  { to: '/admin/managers', label: 'Managers', icon: '👔' },
-  { to: '/admin/employees', label: 'Employees', icon: '👤' },
-  { to: '/admin/customers', label: 'Customers', icon: '🏢' },
-  { to: '/admin/suppliers', label: 'Suppliers', icon: '🏭' },
-  { to: '/admin/import-equipment', label: 'Import Equipment', icon: '📦' },
-  { to: '/admin/stock', label: 'Stock', icon: '📋' },
-  { to: '/admin/payments', label: 'Payments', icon: '💳' },
-]
+const Sidebar = ({ userRole, onLogout }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-const managerLinks = [
-  { to: '/manager', label: 'Dashboard', icon: '📊' },
-  { to: '/manager/customers', label: 'Customers', icon: '🏢' },
-  { to: '/manager/products', label: 'Products', icon: '📦' },
-  { to: '/manager/orders', label: 'Orders', icon: '🛒' },
-  { to: '/manager/stock', label: 'Stock', icon: '📋' },
-  { to: '/manager/deliveries', label: 'Deliveries', icon: '🚚' },
-  { to: '/manager/payments', label: 'Payments', icon: '💳' },
-  { to: '/manager/invoices', label: 'Invoices', icon: '🧾' },
-  { to: '/manager/follow-ups', label: 'Follow-ups', icon: '📅' },
-  { to: '/manager/alerts', label: 'Alerts', icon: '🔔' },
-]
+  // Menu items based on role
+  const getMenuItems = () => {
+    const baseItems = [
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        path: `/${userRole}`,
+      },
+    ];
 
-const employeeLinks = [
-  { to: '/employee', label: 'Dashboard', icon: '📊' },
-  { to: '/employee/customers', label: 'Customers', icon: '🏢' },
-  { to: '/employee/orders', label: 'Orders', icon: '🛒' },
-  { to: '/employee/products', label: 'Products', icon: '📦' },
-  { to: '/employee/stock', label: 'Stock', icon: '📋' },
-  { to: '/employee/deliveries', label: 'Deliveries', icon: '🚚' },
-  { to: '/employee/preferences', label: 'Scraping Prefs', icon: '🔍' },
-  { to: '/employee/alerts', label: 'Alerts', icon: '🔔' },
-  { to: '/employee/follow-ups', label: 'Follow-ups', icon: '📅' },
-]
+    const adminItems = [
+      ...baseItems,
+      {
+        id: 'managers',
+        label: 'Managers',
+        icon: Users,
+        path: '/admin/managers',
+      },
+      {
+        id: 'employees',
+        label: 'Employees',
+        icon: Users,
+        path: '/admin/employees',
+      },
+      {
+        id: 'customers',
+        label: 'Customers',
+        icon: ShoppingCart,
+        path: '/admin/customers',
+      },
+      {
+        id: 'suppliers',
+        label: 'Suppliers',
+        icon: Truck,
+        path: '/admin/suppliers',
+      },
+      {
+        id: 'stock',
+        label: 'Stock',
+        icon: Package,
+        path: '/admin/stock',
+      },
+      {
+        id: 'import-equipment',
+        label: 'Import Equipment',
+        icon: Settings,
+        path: '/admin/import-equipment',
+      },
+      {
+        id: 'payments',
+        label: 'Payments',
+        icon: DollarSign,
+        path: '/admin/payments',
+      },
+    ];
 
-export default function Sidebar() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+    const managerItems = [
+      ...baseItems,
+      {
+        id: 'customers',
+        label: 'Customers',
+        icon: ShoppingCart,
+        path: '/manager/customers',
+      },
+      {
+        id: 'orders',
+        label: 'Orders',
+        icon: FileText,
+        path: '/manager/orders',
+      },
+      {
+        id: 'products',
+        label: 'Products',
+        icon: Package,
+        path: '/manager/products',
+      },
+      {
+        id: 'stock',
+        label: 'Stock',
+        icon: TrendingUp,
+        path: '/manager/stock',
+      },
+      {
+        id: 'deliveries',
+        label: 'Deliveries',
+        icon: Truck,
+        path: '/manager/deliveries',
+      },
+      {
+        id: 'invoices',
+        label: 'Invoices',
+        icon: FileText,
+        path: '/manager/invoices',
+      },
+      {
+        id: 'payments',
+        label: 'Payments',
+        icon: DollarSign,
+        path: '/manager/payments',
+      },
+      {
+        id: 'followups',
+        label: 'Follow-ups',
+        icon: Clock,
+        path: '/manager/follow-ups',
+      },
+      {
+        id: 'alerts',
+        label: 'Alerts',
+        icon: AlertCircle,
+        path: '/manager/alerts',
+      },
+    ];
 
-  const links = user?.role === 'admin' ? adminLinks
-    : user?.role === 'manager' ? managerLinks
-    : employeeLinks
+    const employeeItems = [
+      ...baseItems,
+      {
+        id: 'customers',
+        label: 'Customers',
+        icon: ShoppingCart,
+        path: '/employee/customers',
+      },
+      {
+        id: 'orders',
+        label: 'Orders',
+        icon: FileText,
+        path: '/employee/orders',
+      },
+      {
+        id: 'products',
+        label: 'Products',
+        icon: Package,
+        path: '/employee/products',
+      },
+      {
+        id: 'stock',
+        label: 'Stock',
+        icon: TrendingUp,
+        path: '/employee/stock',
+      },
+      {
+        id: 'deliveries',
+        label: 'Deliveries',
+        icon: Truck,
+        path: '/employee/deliveries',
+      },
+      {
+        id: 'followups',
+        label: 'Follow-ups',
+        icon: Clock,
+        path: '/employee/follow-ups',
+      },
+      {
+        id: 'alerts',
+        label: 'Alerts',
+        icon: AlertCircle,
+        path: '/employee/alerts',
+      },
+      {
+        id: 'preferences',
+        label: 'Preferences',
+        icon: Settings,
+        path: '/employee/preferences',
+      },
+    ];
 
-  const roleLabel = user?.role === 'admin' ? 'Admin Panel'
-    : user?.role === 'manager' ? 'Manager Panel'
-    : 'Employee Panel'
+    switch (userRole) {
+      case 'admin':
+        return adminItems;
+      case 'manager':
+        return managerItems;
+      case 'employee':
+        return employeeItems;
+      default:
+        return baseItems;
+    }
+  };
 
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
-  }
+  const menuItems = getMenuItems();
+  const isActive = (path) => location.pathname === path || (path === `/${userRole}` && location.pathname === `/${userRole}/`);
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    setIsMobileOpen(false);
+  };
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 flex flex-col z-40"
-      style={{
-        background: 'linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(30,27,75,0.95) 100%)',
-        borderRight: '1px solid rgba(99,102,241,0.12)',
-        backdropFilter: 'blur(20px)',
-      }}>
-      {/* Logo */}
-      <div className="p-5 border-b border-white/5">
-        <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          CRMS
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">{roleLabel}</p>
-      </div>
+    <>
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+      >
+        {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
 
-      {/* User Info */}
-      <div className="px-5 py-3 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-            {user?.name?.charAt(0) || '?'}
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-200">{user?.name}</p>
-            <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
-          </div>
-        </div>
-      </div>
+      {/* Sidebar Overlay (Mobile) */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-3 px-3">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === `/${user?.role}`}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-0.5 transition-all duration-200
-              ${isActive
-                ? 'bg-indigo-500/15 text-indigo-300 shadow-sm shadow-indigo-500/10'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`
-            }
+      {/* Sidebar Container */}
+      <aside
+        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-xl transition-all duration-300 z-40
+          ${isOpen ? 'w-72' : 'w-20'} 
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col overflow-hidden
+        `}
+      >
+        {/* Logo Section */}
+        <div className="p-6 border-b border-white/20 flex items-center justify-between animate-slide-in-left">
+          {isOpen && (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                <LayoutDashboard size={24} />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg leading-tight">CRMS</h2>
+                <p className="text-xs text-white/70">{userRole?.toUpperCase()}</p>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
-            <span className="text-base">{link.icon}</span>
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
+            <ChevronDown
+              size={20}
+              className={`transition-transform ${isOpen ? 'rotate-0' : 'rotate-180'}`}
+            />
+          </button>
+        </div>
 
-      {/* Logout */}
-      <div className="p-3 border-t border-white/5">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all"
-        >
-          <span>🚪</span> Logout
-        </button>
-      </div>
-    </aside>
-  )
-}
+        {/* Navigation Menu */}
+        <nav className="flex-1 overflow-y-auto custom-scrollbar py-4 px-3">
+          <div className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavigate(item.path)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative
+                    ${
+                      active
+                        ? 'bg-white/20 text-white shadow-lg'
+                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                    }
+                  `}
+                  title={!isOpen ? item.label : ''}
+                >
+                  {/* Active Indicator */}
+                  {active && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full animate-slide-in-right" />
+                  )}
+
+                  <Icon size={20} className="flex-shrink-0" />
+
+                  {isOpen && (
+                    <>
+                      <span className="flex-1 text-left font-medium">{item.label}</span>
+                      {active && (
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                      )}
+                    </>
+                  )}
+
+                  {/* Hover tooltip when collapsed */}
+                  {!isOpen && (
+                    <div className="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                      {item.label}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Footer Section - Logout */}
+        <div className="p-4 border-t border-white/20 space-y-2">
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-all group"
+            title={!isOpen ? 'Logout' : ''}
+          >
+            <LogOut size={20} className="flex-shrink-0" />
+            {isOpen && <span className="flex-1 text-left font-medium">Logout</span>}
+
+            {!isOpen && (
+              <div className="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                Logout
+              </div>
+            )}
+          </button>
+
+          {isOpen && (
+            <p className="text-xs text-white/60 text-center">
+              © 2025 Business CRM
+            </p>
+          )}
+        </div>
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;

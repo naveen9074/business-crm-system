@@ -3,7 +3,7 @@
  */
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from './store/AuthContext'
-import Sidebar from './components/Sidebar'
+import AppLayout from './components/AppLayout'
 
 // Auth pages
 import LoginPage from './pages/LoginPage'
@@ -44,15 +44,14 @@ import EmpFollowUpsPage from './pages/employee/FollowUpsPage'
 
 function RoleLayout({ role }) {
   const { isAuthenticated, user } = useAuth()
+
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (user?.role !== role) return <Navigate to={`/${user?.role}`} replace />
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="ml-64 flex-1 p-6 lg:p-8">
-        <Outlet />
-      </main>
-    </div>
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
   )
 }
 

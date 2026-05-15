@@ -19,10 +19,14 @@ api.interceptors.request.use((config) => {
 })
 
 // Response interceptor — handle 401 globally
+// BUT skip for auth endpoints (login/register) to avoid redirect loops
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || ''
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
+    
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('crms_token')
       localStorage.removeItem('crms_user')
       window.location.href = '/login'
