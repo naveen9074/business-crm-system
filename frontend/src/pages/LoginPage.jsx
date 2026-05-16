@@ -43,50 +43,15 @@ const LoginPage = () => {
 
       {/* Main Container */}
       <div className="relative w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
-        {/* Left Side - Illustration */}
+        {/* Left Side - Title Only */}
         <div className="hidden md:flex flex-col justify-center items-center animate-slide-in-left">
           <div className="relative w-full h-[520px] bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5" />
 
             <div className="relative w-full h-full flex flex-col items-center justify-center text-white px-10">
-              <svg
-                className="w-44 h-44 mb-8 opacity-80"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-
-              <h2 className="text-4xl font-bold text-center">
+              <h2 className="text-5xl font-bold text-center leading-tight">
                 Business CRM System
               </h2>
-
-              <p className="text-white/80 text-center mt-4 text-lg max-w-md">
-                Manage customers, orders, stock, invoices, follow-ups, and alerts in one professional platform.
-              </p>
-
-              <div className="grid grid-cols-3 gap-4 mt-10 w-full">
-                <div className="rounded-2xl bg-white/15 border border-white/20 p-4 text-center">
-                  <p className="text-2xl font-bold">3</p>
-                  <p className="text-xs text-white/75 mt-1">User Roles</p>
-                </div>
-
-                <div className="rounded-2xl bg-white/15 border border-white/20 p-4 text-center">
-                  <p className="text-2xl font-bold">16</p>
-                  <p className="text-xs text-white/75 mt-1">DB Tables</p>
-                </div>
-
-                <div className="rounded-2xl bg-white/15 border border-white/20 p-4 text-center">
-                  <p className="text-2xl font-bold">CRM</p>
-                  <p className="text-xs text-white/75 mt-1">Business Flow</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
