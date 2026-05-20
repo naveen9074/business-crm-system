@@ -6,6 +6,7 @@ import api from '../../api/axios'
 import PageHeader from '../../components/PageHeader'
 import DataTable from '../../components/DataTable'
 import Modal from '../../components/Modal'
+import SearchBar from '../../components/SearchBar'
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([])
@@ -15,6 +16,7 @@ export default function InvoicesPage() {
   const [form, setForm] = useState({ order_id: '', cust_id: '', payment_id: '', tax_percent: 18 })
   const [preview, setPreview] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = async () => {
     setLoading(true)
@@ -81,13 +83,26 @@ export default function InvoicesPage() {
         action={<button onClick={() => { setForm({ order_id: '', cust_id: '', payment_id: '', tax_percent: 18 }); setPreview(null); setModalOpen(true) }} className="btn-primary">+ Generate Invoice</button>}
       />
 
+      <div className="mb-5">
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search invoices..."
+          className="w-full sm:w-80"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-16 text-slate-500">Loading...</div>
       ) : (
         <DataTable
           columns={columns}
           data={invoices}
-          searchKeys={['invoice_number', 'customer_name']}
+          isLoading={loading}
+          searchable={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          emptyStateMessage="No invoices found"
         />
       )}
 

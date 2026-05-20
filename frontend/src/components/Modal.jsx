@@ -73,19 +73,19 @@ const Modal = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-modal-overlay"
         onClick={() => closeOnBackdropClick && onClose()}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className={`bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col animate-scale-up`}
+          className={`glass-modal w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col animate-modal-content`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           {showHeader && (
-            <div className={`${config.headerBg} text-white p-6 flex items-center justify-between`}>
+            <div className={`${config.headerBg} text-white p-6 flex items-center justify-between rounded-t-[1.5rem]`}>
               <div className="flex items-center gap-4">
                 {IconComponent && (
                   <div className="p-2 bg-white/20 rounded-lg">
@@ -110,7 +110,7 @@ const Modal = ({
 
           {/* Footer */}
           {showFooter && (
-            <div className="border-t border-gray-200 bg-gray-50 p-6 flex gap-3 justify-end">
+            <div className="border-t border-gray-200/50 bg-gray-50/50 p-6 flex gap-3 justify-end rounded-b-[1.5rem]">
               <button
                 onClick={onClose}
                 disabled={isLoading}

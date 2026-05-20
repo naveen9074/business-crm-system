@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../store/AuthContext';
 
 const LoginPage = () => {
@@ -12,10 +12,12 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorType, setErrorType] = useState(''); // 'pending', 'rejected', 'generic'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorType('');
     setIsLoading(true);
 
     try {
@@ -24,12 +26,33 @@ const LoginPage = () => {
       if (result.success) {
         navigate(`/${result.role}`);
       } else {
-        setError(result.message || 'Invalid credentials. Please try again.');
+        const msg = result.message || 'Invalid credentials. Please try again.';
+        setError(msg);
+        // Detect type for styling
+        if (msg.toLowerCase().includes('waiting for admin approval')) {
+          setErrorType('pending');
+        } else if (msg.toLowerCase().includes('not approved')) {
+          setErrorType('rejected');
+        } else {
+          setErrorType('generic');
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
+      setErrorType('generic');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getErrorStyles = () => {
+    switch (errorType) {
+      case 'pending':
+        return 'bg-amber-50 border-amber-200 text-amber-800';
+      case 'rejected':
+        return 'bg-red-50 border-red-200 text-red-700';
+      default:
+        return 'bg-red-50 border-red-200 text-red-700';
     }
   };
 
@@ -39,26 +62,45 @@ const LoginPage = () => {
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/2 right-1/4 w-60 h-60 bg-indigo-400/10 rounded-full blur-2xl animate-float" />
       </div>
 
       {/* Main Container */}
       <div className="relative w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
-        {/* Left Side - Title Only */}
+        {/* Left Side - Title Panel */}
         <div className="hidden md:flex flex-col justify-center items-center animate-slide-in-left">
           <div className="relative w-full h-[520px] bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5" />
 
             <div className="relative w-full h-full flex flex-col items-center justify-center text-white px-10">
-              <h2 className="text-5xl font-bold text-center leading-tight">
+              <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mb-8 animate-float">
+                <LayoutDashboard size={42} />
+              </div>
+              <h2 className="text-5xl font-bold text-center leading-tight mb-4">
                 Business CRM System
               </h2>
+              <p className="text-white/80 text-center text-lg">
+                Manage your customers, orders, deliveries, and more with a powerful, role-based CRM.
+              </p>
+              <div className="mt-8 flex gap-4">
+                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
+                  <p className="text-white/90 text-sm font-medium">👨‍💼 Admin</p>
+                </div>
+                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
+                  <p className="text-white/90 text-sm font-medium">👔 Manager</p>
+                </div>
+                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
+                  <p className="text-white/90 text-sm font-medium">👤 Employee</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Right Side - Login Form */}
         <div className="animate-slide-in-right">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10">
+          <img src="/images/login-illustration.png" alt="CRM Illustration" className="w-full max-w-sm rounded-xl opacity-90 shadow-2xl" />
+          <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10">
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -69,9 +111,11 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {/* Error Alert */}
+            {/* Error Alert — with status-based colors */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm animate-slide-down">
+              <div className={`mb-6 p-4 border rounded-xl text-sm animate-slide-down ${getErrorStyles()}`}>
+                {errorType === 'pending' && <span className="mr-1">⏳</span>}
+                {errorType === 'rejected' && <span className="mr-1">🚫</span>}
                 {error}
               </div>
             )}
@@ -95,7 +139,7 @@ const LoginPage = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Enter your username"
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-lg focus-ring transition-colors"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus-ring transition-colors"
                     required
                   />
                 </div>
@@ -118,7 +162,7 @@ const LoginPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-lg focus-ring transition-colors"
+                    className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus-ring transition-colors"
                     required
                   />
 
@@ -156,7 +200,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

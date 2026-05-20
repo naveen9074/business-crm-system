@@ -6,6 +6,7 @@ import api from '../../api/axios'
 import PageHeader from '../../components/PageHeader'
 import DataTable from '../../components/DataTable'
 import Modal from '../../components/Modal'
+import SearchBar from '../../components/SearchBar'
 
 export default function EmpOrdersPage() {
   const [orders, setOrders] = useState([])
@@ -15,6 +16,7 @@ export default function EmpOrdersPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({ cust_id: '', product_id: '', sup_id: '', quantity: 1, order_date: '' })
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = async () => {
     setLoading(true)
@@ -75,10 +77,27 @@ export default function EmpOrdersPage() {
         action={<button onClick={() => { setForm({ cust_id: '', product_id: '', sup_id: '', quantity: 1, order_date: '' }); setModalOpen(true) }} className="btn-primary">+ Add Order</button>}
       />
 
+      <div className="mb-5">
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search orders..."
+          className="w-full sm:w-80"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-16 text-slate-500">Loading...</div>
       ) : (
-        <DataTable columns={columns} data={orders} searchKeys={['customer_name', 'product_name']} />
+        <DataTable
+          columns={columns}
+          data={orders}
+          isLoading={loading}
+          searchable={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          emptyStateMessage="No orders found"
+        />
       )}
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Add New Order">

@@ -6,6 +6,7 @@ import api from '../../api/axios'
 import PageHeader from '../../components/PageHeader'
 import DataTable from '../../components/DataTable'
 import Modal from '../../components/Modal'
+import SearchBar from '../../components/SearchBar'
 
 export default function EmpStockPage() {
   const [stock, setStock] = useState([])
@@ -14,6 +15,7 @@ export default function EmpStockPage() {
   const [editItem, setEditItem] = useState(null)
   const [form, setForm] = useState({ quantity_available: 0, minimum_stock_level: 10 })
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = async () => {
     setLoading(true)
@@ -62,15 +64,28 @@ export default function EmpStockPage() {
     <div>
       <PageHeader title="Stock Management" subtitle="Update stock quantities — status auto-calculates" />
 
+      <div className="mb-5">
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search stock..."
+          className="w-full sm:w-80"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-16 text-slate-500">Loading...</div>
       ) : (
         <DataTable
           columns={columns}
           data={stock}
-          searchKeys={['product_name']}
+          isLoading={loading}
+          searchable={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          emptyStateMessage="No stock found"
           actions={(row) => (
-            <button onClick={() => openEdit(row)} className="btn-secondary !py-1.5 !px-3 !text-xs">Update</button>
+            <button onClick={() => openEdit(row)} className="btn btn-secondary !py-1.5 !px-3 !text-xs !rounded-xl">Update</button>
           )}
         />
       )}

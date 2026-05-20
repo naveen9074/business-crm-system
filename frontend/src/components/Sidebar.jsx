@@ -17,6 +17,9 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  UserCheck,
+  Send,
+  Bell,
 } from 'lucide-react';
 
 const Sidebar = ({ userRole, onLogout }) => {
@@ -38,6 +41,12 @@ const Sidebar = ({ userRole, onLogout }) => {
 
     const adminItems = [
       ...baseItems,
+      {
+        id: 'approvals',
+        label: 'User Approvals',
+        icon: UserCheck,
+        path: '/admin/approvals',
+      },
       {
         id: 'managers',
         label: 'Managers',
@@ -79,6 +88,18 @@ const Sidebar = ({ userRole, onLogout }) => {
         label: 'Payments',
         icon: DollarSign,
         path: '/admin/payments',
+      },
+      {
+        id: 'send-notification',
+        label: 'Send Notification',
+        icon: Send,
+        path: '/admin/send-notification',
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/admin/notifications',
       },
     ];
 
@@ -138,6 +159,18 @@ const Sidebar = ({ userRole, onLogout }) => {
         icon: AlertCircle,
         path: '/manager/alerts',
       },
+      {
+        id: 'send-notification',
+        label: 'Send Notification',
+        icon: Send,
+        path: '/manager/send-notification',
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/manager/notifications',
+      },
     ];
 
     const employeeItems = [
@@ -190,6 +223,12 @@ const Sidebar = ({ userRole, onLogout }) => {
         icon: Settings,
         path: '/employee/preferences',
       },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/employee/notifications',
+      },
     ];
 
     switch (userRole) {
@@ -217,7 +256,7 @@ const Sidebar = ({ userRole, onLogout }) => {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-lg"
       >
         {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
@@ -225,25 +264,25 @@ const Sidebar = ({ userRole, onLogout }) => {
       {/* Sidebar Overlay (Mobile) */}
       {isMobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40 animate-fade-in"
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed lg:relative top-0 left-0 h-screen bg-gradient-to-b from-indigo-600 via-indigo-600 to-purple-600 text-white shadow-xl transition-all duration-300 z-40
+        className={`fixed lg:relative top-0 left-0 h-screen glass-sidebar text-white shadow-xl transition-all duration-300 z-40
           ${isOpen ? 'w-72' : 'w-20'} 
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           flex flex-col overflow-hidden
         `}
       >
         {/* Logo Section */}
-        <div className="p-6 border-b border-white/20 flex items-center justify-between animate-slide-in-left">
+        <div className="p-6 border-b border-white/15 flex items-center justify-between">
           {isOpen && (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <LayoutDashboard size={24} />
+            <div className="flex items-center gap-3 animate-slide-in-left">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <LayoutDashboard size={22} />
               </div>
               <div>
                 <h2 className="font-bold text-lg leading-tight">CRMS</h2>
@@ -253,7 +292,7 @@ const Sidebar = ({ userRole, onLogout }) => {
           )}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="hidden lg:flex p-2 hover:bg-white/10 rounded-xl transition-colors"
           >
             <ChevronDown
               size={20}
@@ -273,10 +312,10 @@ const Sidebar = ({ userRole, onLogout }) => {
                 <button
                   key={item.id}
                   onClick={() => handleNavigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group relative
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative
                     ${
                       active
-                        ? 'bg-white/20 text-white shadow-lg'
+                        ? 'bg-white/20 text-white shadow-lg backdrop-blur-sm'
                         : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }
                   `}
@@ -284,14 +323,14 @@ const Sidebar = ({ userRole, onLogout }) => {
                 >
                   {/* Active Indicator */}
                   {active && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full animate-slide-in-right" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full" />
                   )}
 
                   <Icon size={20} className="flex-shrink-0" />
 
                   {isOpen && (
                     <>
-                      <span className="flex-1 text-left font-medium">{item.label}</span>
+                      <span className="flex-1 text-left font-medium text-sm">{item.label}</span>
                       {active && (
                         <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                       )}
@@ -311,14 +350,14 @@ const Sidebar = ({ userRole, onLogout }) => {
         </nav>
 
         {/* Footer Section - Logout */}
-        <div className="p-4 border-t border-white/20 space-y-2">
+        <div className="p-4 border-t border-white/15 space-y-2">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-all group"
+            className="w-full flex items-center gap-3 px-4 py-3 text-white/80 hover:bg-white/10 hover:text-white rounded-xl transition-all group"
             title={!isOpen ? 'Logout' : ''}
           >
             <LogOut size={20} className="flex-shrink-0" />
-            {isOpen && <span className="flex-1 text-left font-medium">Logout</span>}
+            {isOpen && <span className="flex-1 text-left font-medium text-sm">Logout</span>}
 
             {!isOpen && (
               <div className="absolute left-full ml-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
@@ -328,7 +367,7 @@ const Sidebar = ({ userRole, onLogout }) => {
           </button>
 
           {isOpen && (
-            <p className="text-xs text-white/60 text-center">
+            <p className="text-xs text-white/50 text-center">
               © 2025 Business CRM
             </p>
           )}

@@ -8,6 +8,7 @@ import {
   Trash2,
   Eye,
   MoreVertical,
+  Inbox,
 } from 'lucide-react';
 
 const DataTable = ({
@@ -27,7 +28,11 @@ const DataTable = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState(null);
-  const [expandedRow, setExpandedRow] = useState(null);
+
+  // Reset to page 1 when search changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Filtering based on searchTerm
   const filteredData = useMemo(() => {
@@ -99,10 +104,10 @@ const DataTable = ({
   // Loading Skeleton
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden animate-fade-in">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30 overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-b border-gray-200/50">
               <tr>
                 {columns.map((col) => (
                   <th
@@ -118,15 +123,15 @@ const DataTable = ({
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: pageSize }).map((_, idx) => (
-                <tr key={idx} className="border-b border-gray-200">
+              {Array.from({ length: Math.min(pageSize, 5) }).map((_, idx) => (
+                <tr key={idx} className="border-b border-gray-100/50">
                   {columns.map((col) => (
                     <td key={col.key} className="px-6 py-4">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24" />
+                      <div className="h-4 rounded-lg skeleton-shimmer w-24" />
                     </td>
                   ))}
                   <td className="px-6 py-4">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16" />
+                    <div className="h-4 rounded-lg skeleton-shimmer w-16" />
                   </td>
                 </tr>
               ))}
@@ -140,11 +145,11 @@ const DataTable = ({
   // Empty State
   if (filteredData.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-md p-12 text-center animate-fade-in">
-        <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-          <Eye size={32} className="text-gray-400" />
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30 p-12 text-center animate-fade-in">
+        <div className="w-16 h-16 bg-gray-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+          <Inbox size={32} className="text-gray-400" />
         </div>
-        <p className="text-gray-600 text-lg font-medium mb-2">{emptyStateMessage}</p>
+        <p className="text-gray-700 text-lg font-medium mb-1">{emptyStateMessage}</p>
         <p className="text-gray-500 text-sm">
           {searchTerm ? 'Try adjusting your search criteria' : 'Get started by adding a new record'}
         </p>
@@ -153,19 +158,19 @@ const DataTable = ({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden animate-fade-in">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/30 overflow-hidden animate-fade-in">
       {/* Table */}
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full">
           {/* Header */}
-          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+          <thead className="bg-gradient-to-r from-gray-50/80 to-gray-100/80 border-b border-gray-200/50">
             <tr>
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => sortable && handleSort(col.key)}
                   className={`px-6 py-4 text-left text-sm font-semibold text-gray-900 ${
-                    sortable ? 'cursor-pointer hover:bg-gray-200 transition-colors' : ''
+                    sortable ? 'cursor-pointer hover:bg-gray-200/50 transition-colors' : ''
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -181,10 +186,10 @@ const DataTable = ({
           </thead>
 
           {/* Body */}
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100/50">
             {paginatedData.map((row, rowIndex) => (
               <React.Fragment key={rowIndex}>
-                <tr className="hover:bg-indigo-50 transition-colors group">
+                <tr className="hover:bg-indigo-50/40 transition-colors group">
                   {columns.map((col) => (
                     <td
                       key={col.key}
@@ -202,7 +207,7 @@ const DataTable = ({
                       {onView && (
                         <button
                           onClick={() => onView(row)}
-                          className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                          className="p-2 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors"
                           title="View"
                         >
                           <Eye size={18} />
@@ -211,7 +216,7 @@ const DataTable = ({
                       {onEdit && (
                         <button
                           onClick={() => onEdit(row)}
-                          className="p-2 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors"
+                          className="p-2 hover:bg-indigo-100 text-indigo-600 rounded-xl transition-colors"
                           title="Edit"
                         >
                           <Edit2 size={18} />
@@ -220,7 +225,7 @@ const DataTable = ({
                       {onDelete && (
                         <button
                           onClick={() => onDelete(row)}
-                          className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                          className="p-2 hover:bg-red-100 text-red-600 rounded-xl transition-colors"
                           title="Delete"
                         >
                           <Trash2 size={18} />
@@ -230,15 +235,15 @@ const DataTable = ({
                       {/* Custom Actions */}
                       {customActions && customActions.length > 0 && (
                         <div className="relative group/menu">
-                          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                          <button className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                             <MoreVertical size={18} />
                           </button>
-                          <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-lg opacity-0 group-hover/menu:opacity-100 transition-opacity pointer-events-none group-hover/menu:pointer-events-auto z-10">
+                          <div className="absolute right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 group-hover/menu:opacity-100 transition-opacity pointer-events-none group-hover/menu:pointer-events-auto z-10">
                             {customActions.map((action) => (
                               <button
                                 key={action.id}
                                 onClick={() => action.onClick(row)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-lg last:rounded-b-lg"
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 first:rounded-t-xl last:rounded-b-xl"
                               >
                                 {action.label}
                               </button>
@@ -257,7 +262,7 @@ const DataTable = ({
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gray-50/50 border-t border-gray-200/50 px-6 py-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             Showing{' '}
             <span className="font-semibold">
@@ -274,7 +279,7 @@ const DataTable = ({
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
@@ -292,9 +297,9 @@ const DataTable = ({
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                      className={`w-10 h-10 rounded-xl font-medium transition-colors ${
                         page === currentPage
-                          ? 'bg-indigo-600 text-white'
+                          ? 'bg-indigo-600 text-white shadow-md'
                           : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -318,7 +323,7 @@ const DataTable = ({
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight size={18} />
             </button>

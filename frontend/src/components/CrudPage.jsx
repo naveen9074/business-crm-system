@@ -7,6 +7,8 @@ import api from '../api/axios'
 import PageHeader from './PageHeader'
 import DataTable from './DataTable'
 import Modal from './Modal'
+import SearchBar from './SearchBar'
+import ConfirmDialog from './ConfirmDialog'
 
 export default function CrudPage({
   title,
@@ -29,6 +31,8 @@ export default function CrudPage({
   const [editItem, setEditItem] = useState(null)
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, row: null })
 
   const fetchData = async () => {
     setLoading(true)
@@ -79,24 +83,31 @@ export default function CrudPage({
   }
 
   const handleDelete = async (row) => {
-    if (!confirm('Are you sure you want to delete this record?')) return
+    setDeleteConfirm({ isOpen: true, row })
+  }
+
+  const confirmDelete = async () => {
+    const row = deleteConfirm.row
+    if (!row) return
     try {
       await api.delete(`${apiBase}/${row[idKey]}`)
       fetchData()
     } catch (err) {
       alert(err.response?.data?.detail || 'Delete failed')
+    } finally {
+      setDeleteConfirm({ isOpen: false, row: null })
     }
   }
 
   const actions = (canEdit || canDelete || extraActions) ? (row) => (
     <>
       {canEdit && formFields && (
-        <button onClick={() => openEdit(row)} className="btn-secondary !py-1.5 !px-3 !text-xs">
+        <button onClick={() => openEdit(row)} className="btn btn-secondary !py-1.5 !px-3 !text-xs !rounded-xl">
           Edit
         </button>
       )}
       {canDelete && (
-        <button onClick={() => handleDelete(row)} className="btn-danger !py-1.5 !px-3 !text-xs">
+        <button onClick={() => handleDelete(row)} className="btn btn-danger !py-1.5 !px-3 !text-xs !rounded-xl">
           Delete
         </button>
       )}
@@ -105,25 +116,37 @@ export default function CrudPage({
   ) : undefined
 
   return (
-    <div>
+    <div className="animate-page-enter">
       <PageHeader
         title={title}
         subtitle={subtitle}
         action={canCreate && formFields && (
-          <button onClick={openCreate} className="btn-primary">{createLabel}</button>
+          <button onClick={openCreate} className="btn btn-primary rounded-xl">{createLabel}</button>
         )}
       />
 
-      {loading ? (
-        <div className="text-center py-16 text-slate-500">Loading...</div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={data}
-          searchKeys={searchKeys}
-          actions={actions}
+      {/* Search Bar */}
+      <div className="mb-5">
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder={`Search ${title?.toLowerCase() || 'records'}...`}
+          className="w-full sm:w-80"
         />
-      )}
+      </div>
+
+      {/* Table */}
+      <DataTable
+        columns={columns}
+        data={data}
+        isLoading={loading}
+        searchable={true}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onEdit={canEdit && formFields ? openEdit : undefined}
+        onDelete={canDelete ? handleDelete : undefined}
+        emptyStateMessage={`No ${title?.toLowerCase() || 'records'} found`}
+      />
 
       {/* Add/Edit Modal */}
       {formFields && (
@@ -131,7 +154,7 @@ export default function CrudPage({
           <form onSubmit={handleSave} className="space-y-4">
             {formFields.filter(f => editItem ? !f.createOnly : !f.editOnly).map((field) => (
               <div key={field.name}>
-                <label className="block text-sm font-medium text-slate-300 mb-1">{field.label}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{field.label}</label>
                 {field.type === 'select' ? (
                   <select
                     className="input-field"
@@ -166,16 +189,32 @@ export default function CrudPage({
             ))}
 
             <div className="flex gap-3 pt-2">
-              <button type="submit" disabled={saving} className="btn-primary flex-1 disabled:opacity-50">
-                {saving ? 'Saving...' : editItem ? 'Update' : 'Create'}
+              <button type="submit" disabled={saving} className="btn btn-primary flex-1 disabled:opacity-50 rounded-xl">
+                {saving ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </span>
+                ) : editItem ? 'Update' : 'Create'}
               </button>
-              <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary flex-1">
+              <button type="button" onClick={() => setModalOpen(false)} className="btn btn-secondary flex-1 rounded-xl">
                 Cancel
               </button>
             </div>
           </form>
         </Modal>
       )}
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        title="Delete Record"
+        message="Are you sure you want to delete this record? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ isOpen: false, row: null })}
+      />
     </div>
   )
 }

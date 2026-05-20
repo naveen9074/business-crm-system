@@ -51,6 +51,17 @@ class UserUpdate(BaseModel):
     phone: Optional[str] = None
     status: Optional[str] = None
 
+class PendingUserOut(BaseModel):
+    user_id: int
+    name: str
+    username: str
+    email: str
+    role: str
+    phone: Optional[str] = None
+    created_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
 
 # ── Customer ─────────────────────────────────────────────────────────
 class CustomerCreate(BaseModel):
@@ -322,5 +333,31 @@ class ImportEquipmentOut(BaseModel):
     import_date: Optional[date] = None
     import_status: Optional[str] = None
     created_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
+
+# ── Notification ────────────────────────────────────────────────────────────────
+class NotificationCreate(BaseModel):
+    receiver_id: Optional[int] = None       # specific user
+    receiver_role: Optional[str] = None     # or broadcast to role (manager/employee)
+    title: str
+    message: str
+    module_name: Optional[str] = None
+    notification_type: Optional[str] = "manual"  # reminder / system / manual
+
+class NotificationOut(BaseModel):
+    notification_id: int
+    sender_id: int
+    sender_name: Optional[str] = None
+    receiver_id: Optional[int] = None
+    receiver_role: Optional[str] = None
+    title: str
+    message: str
+    module_name: Optional[str] = None
+    notification_type: Optional[str] = None
+    status: str  # unread / read
+    created_at: Optional[datetime] = None
+    read_at: Optional[datetime] = None
     class Config:
         from_attributes = True

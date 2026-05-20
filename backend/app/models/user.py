@@ -16,7 +16,7 @@ class User(Base):
     role = Column(Enum("admin", "manager", "employee", name="user_role"), nullable=False)
     phone = Column(String(20), nullable=True)
     status = Column(
-        Enum("active", "inactive", "deactivated", name="user_status"),
+        Enum("active", "inactive", "deactivated", "pending", "rejected", name="user_status"),
         default="active",
         server_default="active",
     )

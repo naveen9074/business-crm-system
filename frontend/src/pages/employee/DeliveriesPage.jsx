@@ -6,6 +6,7 @@ import api from '../../api/axios'
 import PageHeader from '../../components/PageHeader'
 import DataTable from '../../components/DataTable'
 import Modal from '../../components/Modal'
+import SearchBar from '../../components/SearchBar'
 
 export default function EmpDeliveriesPage() {
   const [deliveries, setDeliveries] = useState([])
@@ -14,6 +15,7 @@ export default function EmpDeliveriesPage() {
   const [editItem, setEditItem] = useState(null)
   const [status, setStatus] = useState('')
   const [saving, setSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchData = async () => {
     setLoading(true)
@@ -58,15 +60,28 @@ export default function EmpDeliveriesPage() {
     <div>
       <PageHeader title="Deliveries" subtitle="Track and update delivery statuses" />
 
+      <div className="mb-5">
+        <SearchBar
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search deliveries..."
+          className="w-full sm:w-80"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-16 text-slate-500">Loading...</div>
       ) : (
         <DataTable
           columns={columns}
           data={deliveries}
-          searchKeys={['customer_name', 'delivery_id']}
+          isLoading={loading}
+          searchable={true}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          emptyStateMessage="No deliveries found"
           actions={(row) => (
-            <button onClick={() => openUpdate(row)} className="btn-secondary !py-1.5 !px-3 !text-xs">Update Status</button>
+            <button onClick={() => openUpdate(row)} className="btn btn-secondary !py-1.5 !px-3 !text-xs !rounded-xl">Update Status</button>
           )}
         />
       )}

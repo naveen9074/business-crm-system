@@ -17,16 +17,23 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 @router.post("/register")
 def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    """Register a new user with hashed password."""
+    """Register a new user. Admin role is not allowed from public registration.
+    Manager/Employee accounts start as 'pending' and require admin approval."""
+    # Block admin self-registration
+    if req.role == "admin":
+        raise HTTPException(
+            status_code=400,
+            detail="Admin registration is not allowed from public registration.",
+        )
+    # Validate role
+    if req.role not in ("manager", "employee"):
+        raise HTTPException(status_code=400, detail="Invalid role. Must be manager or employee.")
     # Check unique username
     if db.query(User).filter(User.username == req.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
     # Check unique email
     if db.query(User).filter(User.email == req.email).first():
         raise HTTPException(status_code=400, detail="Email already exists")
-    # Validate role
-    if req.role not in ("admin", "manager", "employee"):
-        raise HTTPException(status_code=400, detail="Invalid role. Must be admin, manager, or employee")
 
     user = User(
         name=req.name,
@@ -35,12 +42,16 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
         password_hash=hash_password(req.password),
         role=req.role,
         phone=req.phone,
-        status="active",
+        status="pending",  # Must be approved by admin before login
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"success": True, "message": "Registration successful", "user_id": user.user_id}
+    return {
+        "success": True,
+        "message": "Registration submitted successfully. Please wait for admin approval.",
+        "user_id": user.user_id,
+    }
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -49,8 +60,20 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == req.username).first()
     if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    if user.status == "deactivated":
-        raise HTTPException(status_code=403, detail="Account has been deactivated")
+
+    # Status-based access control
+    if user.status == "pending":
+        raise HTTPException(
+            status_code=403,
+            detail="Your account is waiting for admin approval.",
+        )
+    if user.status in ("rejected", "deactivated"):
+        raise HTTPException(
+            status_code=403,
+            detail="Your account is not approved. Please contact admin.",
+        )
+    if user.status != "active":
+        raise HTTPException(status_code=403, detail="Account is not active.")
 
     token = create_access_token({"user_id": user.user_id, "role": user.role})
 

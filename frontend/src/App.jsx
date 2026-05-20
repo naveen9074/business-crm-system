@@ -18,6 +18,7 @@ import AdminSuppliersPage from './pages/admin/SuppliersPage'
 import AdminImportEquipmentPage from './pages/admin/ImportEquipmentPage'
 import AdminStockPage from './pages/admin/StockPage'
 import AdminPaymentsPage from './pages/admin/PaymentsPage'
+import UserApprovalsPage from './pages/admin/UserApprovalsPage'
 
 // Manager pages
 import ManagerDashboard from './pages/manager/ManagerDashboard'
@@ -41,6 +42,10 @@ import EmpDeliveriesPage from './pages/employee/DeliveriesPage'
 import EmpPreferencesPage from './pages/employee/PreferencesPage'
 import EmpAlertsPage from './pages/employee/AlertsPage'
 import EmpFollowUpsPage from './pages/employee/FollowUpsPage'
+
+// Shared pages
+import SendNotificationPage from './pages/SendNotificationPage'
+import NotificationsPage from './pages/NotificationsPage'
 
 function RoleLayout({ role }) {
   const { isAuthenticated, user } = useAuth()
@@ -75,6 +80,9 @@ export default function App() {
           <Route path="import-equipment" element={<AdminImportEquipmentPage />} />
           <Route path="stock" element={<AdminStockPage />} />
           <Route path="payments" element={<AdminPaymentsPage />} />
+          <Route path="approvals" element={<UserApprovalsPage />} />
+          <Route path="send-notification" element={<SendNotificationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* Manager */}
@@ -89,6 +97,8 @@ export default function App() {
           <Route path="invoices" element={<MgrInvoicesPage />} />
           <Route path="follow-ups" element={<MgrFollowUpsPage />} />
           <Route path="alerts" element={<MgrAlertsPage />} />
+          <Route path="send-notification" element={<SendNotificationPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* Employee */}
@@ -102,6 +112,7 @@ export default function App() {
           <Route path="preferences" element={<EmpPreferencesPage />} />
           <Route path="alerts" element={<EmpAlertsPage />} />
           <Route path="follow-ups" element={<EmpFollowUpsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
         {/* Catch-all */}

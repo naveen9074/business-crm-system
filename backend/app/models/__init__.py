@@ -16,10 +16,11 @@ from app.models.web_scraping import WebScrapingPreference, ScrapingResult
 from app.models.alert import Alert
 from app.models.import_equipment import ImportEquipment
 from app.models.audit_log import AuditLog
+from app.models.notification import Notification
 
 __all__ = [
     "User", "LoginLog", "Customer", "Supplier", "Product",
     "Order", "Stock", "Delivery", "Payment", "Invoice",
     "FollowUp", "WebScrapingPreference", "ScrapingResult",
-    "Alert", "ImportEquipment", "AuditLog",
+    "Alert", "ImportEquipment", "AuditLog", "Notification",
 ]

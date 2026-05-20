@@ -13,7 +13,7 @@ from app.database import Base, engine
 import app.models  # noqa: F401
 
 # Routers
-from app.routers import auth, admin, manager, employee, system
+from app.routers import auth, admin, manager, employee, system, notifications
 
 
 @asynccontextmanager
@@ -109,6 +109,7 @@ app.include_router(admin.router)
 app.include_router(manager.router)
 app.include_router(employee.router)
 app.include_router(system.router)
+app.include_router(notifications.router)
 
 
 @app.get("/health", tags=["Health"])

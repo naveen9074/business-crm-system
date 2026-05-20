@@ -21,17 +21,17 @@ const StatCard = ({
   if (isLoading) {
     return (
       <div
-        className={`bg-white rounded-xl shadow-md p-6 h-full ${
-          animated ? 'animate-pulse' : ''
+        className={`glass-card p-6 h-full ${
+          animated ? '' : ''
         }`}
       >
         <div className="flex items-start justify-between mb-4">
-          <div className="w-12 h-12 bg-gray-200 rounded-lg" />
-          <div className="w-12 h-6 bg-gray-200 rounded" />
+          <div className="w-12 h-12 rounded-2xl skeleton-shimmer" />
+          <div className="w-12 h-6 rounded-lg skeleton-shimmer" />
         </div>
         <div className="space-y-3">
-          <div className="h-6 bg-gray-200 rounded w-3/4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="h-6 rounded-lg skeleton-shimmer w-3/4" />
+          <div className="h-4 rounded-lg skeleton-shimmer w-1/2" />
         </div>
       </div>
     );
@@ -40,8 +40,7 @@ const StatCard = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-xl shadow-md p-6 h-full transition-all cursor-pointer group
-        ${animated ? 'hover-lift' : ''}
+      className={`glass-card bg-gradient-to-br ${gradientFrom} ${gradientTo} p-6 h-full transition-all group
         ${onClick ? 'cursor-pointer' : 'cursor-default'}
       `}
     >
@@ -49,7 +48,7 @@ const StatCard = ({
       <div className="flex items-start justify-between mb-6">
         {/* Icon */}
         {Icon && (
-          <div className={`${iconBgColor} p-3 rounded-lg ${iconColor} transition-transform ${animated ? 'group-hover:scale-110' : ''}`}>
+          <div className={`${iconBgColor} p-3 rounded-2xl ${iconColor} transition-transform ${animated ? 'group-hover:scale-110' : ''} shadow-sm`}>
             <Icon size={24} />
           </div>
         )}

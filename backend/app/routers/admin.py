@@ -1,6 +1,6 @@
 """
 Admin module routes — Manage Managers, Employees, Customers (view), Suppliers,
-Import Equipment, Stock (view), Payments (view).
+Import Equipment, Stock (view), Payments (view), User Approvals.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -14,7 +14,7 @@ from app.models.stock import Stock
 from app.models.product import Product
 from app.models.payment import Payment
 from app.schemas import (
-    UserCreate, UserUpdate, UserOut,
+    UserCreate, UserUpdate, UserOut, PendingUserOut,
     CustomerOut,
     SupplierCreate, SupplierUpdate, SupplierOut,
     ImportEquipmentCreate, ImportEquipmentUpdate, ImportEquipmentOut,
@@ -24,6 +24,56 @@ from app.utils import hash_password
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Module"])
 admin_dep = require_role("admin")
+
+
+# ════════════════════════════════════════════════════════════════════
+#  USER APPROVAL MANAGEMENT
+# ════════════════════════════════════════════════════════════════════
+
+@router.get("/pending-users")
+def list_pending_users(db: Session = Depends(get_db), _=Depends(admin_dep)):
+    """Get all users with status='pending' awaiting admin approval."""
+    rows = db.query(User).filter(User.status == "pending").all()
+    return {"pending_users": [PendingUserOut.from_orm(r) for r in rows]}
+
+
+@router.put("/users/{user_id}/approve")
+def approve_user(user_id: int, db: Session = Depends(get_db), _=Depends(admin_dep)):
+    """Approve a pending manager or employee — set status to active."""
+    u = db.query(User).filter(User.user_id == user_id).first()
+    if not u:
+        raise HTTPException(404, "User not found")
+    if u.role == "admin":
+        raise HTTPException(400, "Cannot modify admin accounts via this endpoint")
+    u.status = "active"
+    db.commit()
+    return {"success": True, "message": f"{u.name} approved successfully"}
+
+
+@router.put("/users/{user_id}/reject")
+def reject_user(user_id: int, db: Session = Depends(get_db), _=Depends(admin_dep)):
+    """Reject a pending user — set status to rejected."""
+    u = db.query(User).filter(User.user_id == user_id).first()
+    if not u:
+        raise HTTPException(404, "User not found")
+    if u.role == "admin":
+        raise HTTPException(400, "Cannot modify admin accounts via this endpoint")
+    u.status = "rejected"
+    db.commit()
+    return {"success": True, "message": f"{u.name} rejected"}
+
+
+@router.put("/users/{user_id}/deactivate")
+def deactivate_user(user_id: int, db: Session = Depends(get_db), _=Depends(admin_dep)):
+    """Deactivate an active user."""
+    u = db.query(User).filter(User.user_id == user_id).first()
+    if not u:
+        raise HTTPException(404, "User not found")
+    if u.role == "admin":
+        raise HTTPException(400, "Cannot modify admin accounts via this endpoint")
+    u.status = "deactivated"
+    db.commit()
+    return {"success": True, "message": f"{u.name} deactivated"}
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -47,7 +97,10 @@ def create_manager(req: UserCreate, db: Session = Depends(get_db), _=Depends(adm
 
 @router.get("/managers")
 def list_managers(db: Session = Depends(get_db), _=Depends(admin_dep)):
-    rows = db.query(User).filter(User.role == "manager", User.status != "deactivated").all()
+    rows = db.query(User).filter(
+        User.role == "manager",
+        User.status.in_(["active", "inactive", "deactivated"])
+    ).all()
     return {"managers": [UserOut.from_orm(r) for r in rows]}
 
 
@@ -101,7 +154,10 @@ def create_employee(req: UserCreate, db: Session = Depends(get_db), _=Depends(ad
 
 @router.get("/employees")
 def list_employees(db: Session = Depends(get_db), _=Depends(admin_dep)):
-    rows = db.query(User).filter(User.role == "employee", User.status != "deactivated").all()
+    rows = db.query(User).filter(
+        User.role == "employee",
+        User.status.in_(["active", "inactive", "deactivated"])
+    ).all()
     return {"employees": [UserOut.from_orm(r) for r in rows]}
 
 
