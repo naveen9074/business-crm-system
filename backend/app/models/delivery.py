@@ -1,5 +1,5 @@
 """
-Delivery model — updated by Employee, viewed by Manager.
+Delivery model — added by Employee, viewed by Manager.
 """
 from sqlalchemy import Column, Integer, Enum, DateTime, Date, Text, ForeignKey, func
 from app.database import Base
@@ -19,5 +19,6 @@ class Delivery(Base):
         server_default="pending",
     )
     updated_by = Column(Integer, ForeignKey("users.user_id"), nullable=True)
+    remarks = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

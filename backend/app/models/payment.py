@@ -1,7 +1,7 @@
 """
-Payment model — viewed by Admin and Manager.
+Payment model — Manager can create/update, Admin can view.
 """
-from sqlalchemy import Column, Integer, Enum, DateTime, Date, Numeric, ForeignKey, func
+from sqlalchemy import Column, Integer, Enum, DateTime, Date, Numeric, Text, ForeignKey, func
 from app.database import Base
 
 
@@ -23,5 +23,6 @@ class Payment(Base):
         server_default="pending",
     )
     payment_date = Column(Date, nullable=True)
+    remarks = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())

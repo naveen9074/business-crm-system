@@ -24,7 +24,7 @@ from app.schemas import (
     ProductCreate, ProductOut,
     OrderCreate, OrderOut,
     StockUpdate, StockOut,
-    DeliveryUpdate, DeliveryOut,
+    DeliveryCreate, DeliveryUpdate, DeliveryOut,
     PreferenceCreate, PreferenceOut,
     AlertUpdate, AlertOut,
     FollowUpCreate, FollowUpUpdate, FollowUpOut,
@@ -172,8 +172,30 @@ def update_stock(stock_id: int, req: StockUpdate, db: Session = Depends(get_db),
 
 
 # ════════════════════════════════════════════════════════════════════
-#  VIEW / UPDATE DELIVERY
+#  ADD / VIEW / UPDATE DELIVERY
 # ════════════════════════════════════════════════════════════════════
+
+@router.post("/deliveries")
+def create_delivery(req: DeliveryCreate, db: Session = Depends(get_db), user: User = Depends(emp_dep)):
+    """Employee adds a new delivery record manually."""
+    order = db.query(Order).filter(Order.order_id == req.order_id).first()
+    if not order:
+        raise HTTPException(404, "Order not found")
+    customer = db.query(Customer).filter(Customer.cust_id == req.cust_id).first()
+    if not customer:
+        raise HTTPException(404, "Customer not found")
+    d = Delivery(
+        order_id=req.order_id,
+        cust_id=req.cust_id,
+        delivery_address=req.delivery_address or (customer.address if customer else None),
+        delivery_date=req.delivery_date,
+        delivery_status=req.delivery_status or "pending",
+        remarks=req.remarks,
+        updated_by=user.user_id,
+    )
+    db.add(d); db.commit(); db.refresh(d)
+    return {"success": True, "delivery_id": d.delivery_id}
+
 
 @router.get("/deliveries")
 def list_deliveries(db: Session = Depends(get_db), _=Depends(emp_dep)):
@@ -211,7 +233,15 @@ def update_delivery(delivery_id: int, req: DeliveryUpdate, db: Session = Depends
     d = db.query(Delivery).filter(Delivery.delivery_id == delivery_id).first()
     if not d:
         raise HTTPException(404, "Delivery not found")
-    d.delivery_status = req.delivery_status
+    # Update whichever fields were provided
+    if req.delivery_status is not None:
+        d.delivery_status = req.delivery_status
+    if req.delivery_address is not None:
+        d.delivery_address = req.delivery_address
+    if req.delivery_date is not None:
+        d.delivery_date = req.delivery_date
+    if req.remarks is not None:
+        d.remarks = req.remarks
     d.updated_by = user.user_id
     db.commit()
 
@@ -222,7 +252,7 @@ def update_delivery(delivery_id: int, req: DeliveryUpdate, db: Session = Depends
             order.order_status = "delivered"
             db.commit()
 
-    return {"success": True, "message": "Delivery status updated"}
+    return {"success": True, "message": "Delivery updated"}
 
 
 # ════════════════════════════════════════════════════════════════════

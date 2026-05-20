@@ -13,6 +13,8 @@ from app.models.import_equipment import ImportEquipment
 from app.models.stock import Stock
 from app.models.product import Product
 from app.models.payment import Payment
+from app.models.invoice import Invoice
+from app.models.notification import Notification
 from app.schemas import (
     UserCreate, UserUpdate, UserOut, PendingUserOut,
     CustomerOut,
@@ -21,6 +23,7 @@ from app.schemas import (
     StockOut, PaymentOut,
 )
 from app.utils import hash_password
+from app.dependencies import require_role, get_current_user
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Module"])
 admin_dep = require_role("admin")
@@ -345,18 +348,84 @@ def get_stock(stock_id: int, db: Session = Depends(get_db), _=Depends(admin_dep)
 
 
 # ════════════════════════════════════════════════════════════════════
-#  VIEW PAYMENTS (Read-Only)
+#  VIEW PAYMENTS (Read-Only) + Send Reminder
 # ════════════════════════════════════════════════════════════════════
 
 @router.get("/payments")
 def list_payments(db: Session = Depends(get_db), _=Depends(admin_dep)):
-    rows = db.query(Payment).all()
-    return {"payments": [PaymentOut.from_orm(r) for r in rows]}
+    rows = (
+        db.query(Payment, Customer.customer_name, Invoice.invoice_number)
+        .outerjoin(Customer, Payment.cust_id == Customer.cust_id)
+        .outerjoin(Invoice, Payment.inv_id == Invoice.inv_id)
+        .all()
+    )
+    result = []
+    for p, cname, inv_num in rows:
+        d = PaymentOut.from_orm(p).model_dump()
+        d["customer_name"] = cname
+        d["invoice_number"] = inv_num
+        result.append(d)
+    return {"payments": result}
 
 
 @router.get("/payments/{payment_id}")
 def get_payment(payment_id: int, db: Session = Depends(get_db), _=Depends(admin_dep)):
-    p = db.query(Payment).filter(Payment.payment_id == payment_id).first()
-    if not p:
+    row = (
+        db.query(Payment, Customer.customer_name, Invoice.invoice_number)
+        .outerjoin(Customer, Payment.cust_id == Customer.cust_id)
+        .outerjoin(Invoice, Payment.inv_id == Invoice.inv_id)
+        .filter(Payment.payment_id == payment_id)
+        .first()
+    )
+    if not row:
         raise HTTPException(404, "Payment not found")
-    return PaymentOut.from_orm(p)
+    p, cname, inv_num = row
+    d = PaymentOut.from_orm(p).model_dump()
+    d["customer_name"] = cname
+    d["invoice_number"] = inv_num
+    return d
+
+
+@router.post("/payments/{payment_id}/send-reminder")
+def send_payment_reminder(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(admin_dep),
+):
+    """Admin sends a payment reminder notification to all active managers."""
+    row = (
+        db.query(Payment, Customer.customer_name)
+        .outerjoin(Customer, Payment.cust_id == Customer.cust_id)
+        .filter(Payment.payment_id == payment_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(404, "Payment not found")
+    p, cname = row
+
+    # Find all active managers
+    managers = db.query(User).filter(User.role == "manager", User.status == "active").all()
+    if not managers:
+        raise HTTPException(404, "No active managers found")
+
+    title = f"Payment Reminder — Order #{p.order_id}"
+    message = (
+        f"Payment #{p.payment_id} for Order #{p.order_id}"
+        + (f" ({cname})" if cname else "")
+        + f" is still {p.payment_status}. Please review and update the payment status."
+    )
+
+    for mgr in managers:
+        notif = Notification(
+            sender_id=admin.user_id,
+            receiver_id=mgr.user_id,
+            receiver_role=None,
+            title=title,
+            message=message,
+            module_name="Payments",
+            notification_type="reminder",
+            status="unread",
+        )
+        db.add(notif)
+    db.commit()
+    return {"success": True, "message": f"Reminder sent to {len(managers)} manager(s)"}

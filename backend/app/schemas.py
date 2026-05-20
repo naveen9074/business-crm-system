@@ -190,8 +190,19 @@ class StockOut(BaseModel):
 
 
 # ── Delivery ─────────────────────────────────────────────────────────
+class DeliveryCreate(BaseModel):
+    order_id: int
+    cust_id: int
+    delivery_address: Optional[str] = None
+    delivery_date: Optional[date] = None
+    delivery_status: Optional[str] = "pending"
+    remarks: Optional[str] = None
+
 class DeliveryUpdate(BaseModel):
-    delivery_status: str
+    delivery_status: Optional[str] = None
+    delivery_address: Optional[str] = None
+    delivery_date: Optional[date] = None
+    remarks: Optional[str] = None
 
 class DeliveryOut(BaseModel):
     delivery_id: int
@@ -202,21 +213,43 @@ class DeliveryOut(BaseModel):
     delivery_date: Optional[date] = None
     delivery_status: Optional[str] = None
     updated_by: Optional[int] = None
+    remarks: Optional[str] = None
     created_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 
 
 # ── Payment ──────────────────────────────────────────────────────────
+class PaymentCreate(BaseModel):
+    order_id: int
+    cust_id: int
+    inv_id: Optional[int] = None
+    amount: float = 0
+    payment_method: Optional[str] = None
+    payment_status: Optional[str] = "pending"
+    payment_date: Optional[date] = None
+    remarks: Optional[str] = None
+
+class PaymentUpdate(BaseModel):
+    payment_status: Optional[str] = None
+    payment_method: Optional[str] = None
+    amount: Optional[float] = None
+    payment_date: Optional[date] = None
+    inv_id: Optional[int] = None
+    remarks: Optional[str] = None
+
 class PaymentOut(BaseModel):
     payment_id: int
     order_id: int
     inv_id: Optional[int] = None
     cust_id: int
+    customer_name: Optional[str] = None
+    invoice_number: Optional[str] = None
     amount: float = 0
     payment_method: Optional[str] = None
     payment_status: Optional[str] = None
     payment_date: Optional[date] = None
+    remarks: Optional[str] = None
     created_at: Optional[datetime] = None
     class Config:
         from_attributes = True

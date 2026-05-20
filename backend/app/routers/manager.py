@@ -17,12 +17,13 @@ from app.models.order import Order
 from app.models.stock import Stock
 from app.models.delivery import Delivery
 from app.models.payment import Payment
-from app.models.invoice import Invoice
 from app.models.follow_up import FollowUp
 from app.models.alert import Alert
+from app.models.invoice import Invoice
 from app.schemas import (
     CustomerCreate, CustomerUpdate, CustomerOut,
-    ProductOut, OrderOut, StockOut, DeliveryOut, PaymentOut,
+    ProductOut, OrderOut, StockOut, DeliveryOut,
+    PaymentCreate, PaymentUpdate, PaymentOut,
     InvoiceCreate, InvoiceOut,
     FollowUpOut, AlertOut,
 )
@@ -222,21 +223,79 @@ def get_delivery(delivery_id: int, db: Session = Depends(get_db), _=Depends(mgr_
 
 
 # ════════════════════════════════════════════════════════════════════
-#  VIEW PAYMENTS (Read-Only)
+#  PAYMENTS — Manager can CREATE and UPDATE
 # ════════════════════════════════════════════════════════════════════
+
+@router.post("/payments")
+def create_payment(req: PaymentCreate, db: Session = Depends(get_db), user: User = Depends(mgr_dep)):
+    """Manager creates a new payment record."""
+    # Validate order exists
+    order = db.query(Order).filter(Order.order_id == req.order_id).first()
+    if not order:
+        raise HTTPException(404, "Order not found")
+    # Validate customer exists
+    customer = db.query(Customer).filter(Customer.cust_id == req.cust_id).first()
+    if not customer:
+        raise HTTPException(404, "Customer not found")
+    p = Payment(
+        order_id=req.order_id,
+        cust_id=req.cust_id,
+        inv_id=req.inv_id,
+        amount=req.amount,
+        payment_method=req.payment_method,
+        payment_status=req.payment_status or "pending",
+        payment_date=req.payment_date,
+        remarks=req.remarks,
+    )
+    db.add(p); db.commit(); db.refresh(p)
+    return {"success": True, "payment_id": p.payment_id}
+
 
 @router.get("/payments")
 def list_payments(db: Session = Depends(get_db), _=Depends(mgr_dep)):
-    rows = db.query(Payment).all()
-    return {"payments": [PaymentOut.from_orm(r) for r in rows]}
+    rows = (
+        db.query(Payment, Customer.customer_name, Invoice.invoice_number)
+        .outerjoin(Customer, Payment.cust_id == Customer.cust_id)
+        .outerjoin(Invoice, Payment.inv_id == Invoice.inv_id)
+        .all()
+    )
+    result = []
+    for p, cname, inv_num in rows:
+        d = PaymentOut.from_orm(p).model_dump()
+        d["customer_name"] = cname
+        d["invoice_number"] = inv_num
+        result.append(d)
+    return {"payments": result}
 
 
 @router.get("/payments/{payment_id}")
 def get_payment(payment_id: int, db: Session = Depends(get_db), _=Depends(mgr_dep)):
+    row = (
+        db.query(Payment, Customer.customer_name, Invoice.invoice_number)
+        .outerjoin(Customer, Payment.cust_id == Customer.cust_id)
+        .outerjoin(Invoice, Payment.inv_id == Invoice.inv_id)
+        .filter(Payment.payment_id == payment_id)
+        .first()
+    )
+    if not row:
+        raise HTTPException(404, "Payment not found")
+    p, cname, inv_num = row
+    d = PaymentOut.from_orm(p).model_dump()
+    d["customer_name"] = cname
+    d["invoice_number"] = inv_num
+    return d
+
+
+@router.put("/payments/{payment_id}")
+def update_payment(payment_id: int, req: PaymentUpdate, db: Session = Depends(get_db), _=Depends(mgr_dep)):
+    """Manager updates payment status and details."""
     p = db.query(Payment).filter(Payment.payment_id == payment_id).first()
     if not p:
         raise HTTPException(404, "Payment not found")
-    return PaymentOut.from_orm(p)
+    for k, v in req.model_dump(exclude_none=True).items():
+        setattr(p, k, v)
+    db.commit()
+    return {"success": True, "message": "Payment updated"}
 
 
 # ════════════════════════════════════════════════════════════════════
