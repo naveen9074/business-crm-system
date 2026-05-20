@@ -79,27 +79,12 @@ const LoginPage = () => {
               <h2 className="text-5xl font-bold text-center leading-tight mb-4">
                 Business CRM System
               </h2>
-              <p className="text-white/80 text-center text-lg">
-                Manage your customers, orders, deliveries, and more with a powerful, role-based CRM.
-              </p>
-              <div className="mt-8 flex gap-4">
-                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-                  <p className="text-white/90 text-sm font-medium">👨‍💼 Admin</p>
-                </div>
-                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-                  <p className="text-white/90 text-sm font-medium">👔 Manager</p>
-                </div>
-                <div className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
-                  <p className="text-white/90 text-sm font-medium">👤 Employee</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Right Side - Login Form */}
         <div className="animate-slide-in-right">
-          <img src="/images/login-illustration.png" alt="CRM Illustration" className="w-full max-w-sm rounded-xl opacity-90 shadow-2xl" />
           <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10">
             {/* Header */}
             <div className="mb-8">
